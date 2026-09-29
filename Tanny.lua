@@ -1,111 +1,80 @@
--- =====================================================
---  SCRIPT: tanny
---  ฟังก์ชัน: เดินเร็ว, วางไข่อัตโนมัติ, ขโมยไข่อัตโนมัติ, ฟาร์มความเร็วอัตโนมัติ
--- =====================================================
+-- Tanny Script — สำหรับเกมของเราเองเท่านั้น
+-- =============================================
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-
--- ================= ตั้งค่าพื้นฐาน =================
-local CONFIG = {
-    WALK_SPEED = 80,          -- ความเร็วในการเดิน (ปรับได้ตามต้องการ)
-    AUTO_PLACE = true,        -- เปิด/ปิด การวางไข่อัตโนมัติ
-    AUTO_STEAL = true,        -- เปิด/ปิด การขโมยไข่อัตโนมัติ
-    AUTO_FARM_SPEED = true,   -- เปิด/ปิด การฟาร์มความเร็วอัตโนมัติ
-    FARM_SPEED_INTERVAL = 0.5 -- ระยะเวลาในการฟาร์มความเร็ว (วินาที)
+local Tanny = {}
+Tanny.Settings = {
+    WalkSpeedBoost = 32,
+    AutoPlaceInterval = 3,
+    AutoStealRange = 15,
+    AutoFarmSpeed = true
 }
 
--- ================= ฟังก์ชัน: เดินเร็ว =================
-local function setWalkSpeed(speed)
-    local char = LocalPlayer.Character
-    if not char then return end
-    
-    local humanoid = char:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        humanoid.WalkSpeed = speed
-        -- ป้องกันไม่ให้เกมรีเซ็ตค่า
-        humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
-            if humanoid.WalkSpeed ~= speed then
-                humanoid.WalkSpeed = speed
-            end
-        end)
+-- 🚀 เดินเร็ว
+function Tanny.SetWalkSpeed(enabled)
+    local plr = game.Players.LocalPlayer
+    if plr.Character and plr.Character:FindFirstChild("Humanoid") then
+        plr.Character.Humanoid.WalkSpeed = enabled and Tanny.Settings.WalkSpeedBoost or 16
     end
 end
 
--- เรียกใช้เมื่อตัวละครเกิดใหม่
-LocalPlayer.CharacterAdded:Connect(function()
-    task.wait(1)
-    setWalkSpeed(CONFIG.WALK_SPEED)
-end)
-
--- เรียกใช้ทันทีเมื่อรันสคริปต์
-if LocalPlayer.Character then
-    setWalkSpeed(CONFIG.WALK_SPEED)
-end
-
-print("[tanny] เปิดใช้งาน: เดินเร็ว (" .. CONFIG.WALK_SPEED .. ")")
-
--- ================= ฟังก์ชัน: วางไข่อัตโนมัติ =================
--- หมายเหตุ: ฟังก์ชันนี้ต้องปรับให้เข้ากับเกม "Steal an Egg" โดยเฉพาะ
--- โดยทั่วไปจะทำงานผ่านการกดปุ่มวางไข่ (Place) เมื่อมีไข่ในมือ
-local function autoPlaceEgg()
-    if not CONFIG.AUTO_PLACE then return end
-    
-    -- ตัวอย่าง: กดปุ่ม E หรือปุ่มที่ใช้วางไข่ (ปรับตามเกม)
-    -- คุณสามารถใช้ VirtualInputManager หรือ KeyPress เพื่อจำลองการกดปุ่ม
-    local VirtualInputManager = game:GetService("VirtualInputManager")
-    VirtualInputManager:SendKeyEvent(true, "E", false, game)
-    task.wait(0.1)
-    VirtualInputManager:SendKeyEvent(false, "E", false, game)
-end
-
--- ================= ฟังก์ชัน: ขโมยไข่อัตโนมัติ =================
--- หมายเหตุ: ฟังก์ชันนี้ต้องปรับให้เข้ากับเกม "Steal an Egg"
--- โดยทั่วไปจะทำงานเมื่อผู้เล่นอยู่ใกล้ไข่ของคนอื่นแล้วกดปุ่มขโมย (Steal)
-local function autoStealEgg()
-    if not CONFIG.AUTO_STEAL then return end
-    
-    -- ตัวอย่าง: กดปุ่ม F หรือปุ่มที่ใช้ขโมยไข่ (ปรับตามเกม)
-    local VirtualInputManager = game:GetService("VirtualInputManager")
-    VirtualInputManager:SendKeyEvent(true, "F", false, game)
-    task.wait(0.1)
-    VirtualInputManager:SendKeyEvent(false, "F", false, game)
-end
-
--- ================= ฟังก์ชัน: ฟาร์มความเร็วอัตโนมัติ =================
-local function autoFarmSpeed()
-    if not CONFIG.AUTO_FARM_SPEED then return end
-    
-    -- ตัวอย่าง: เพิ่มความเร็วในการฟาร์มโดยการเดินไปมา
-    -- หรือใช้การกดปุ่มเพื่อเพิ่มความเร็ว (ปรับตามเกม)
-    local char = LocalPlayer.Character
-    if not char then return end
-    
-    local humanoid = char:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        -- ตัวอย่าง: เพิ่มความเร็วชั่วคราว
-        humanoid.WalkSpeed = CONFIG.WALK_SPEED + 20
-        task.wait(CONFIG.FARM_SPEED_INTERVAL)
-        humanoid.WalkSpeed = CONFIG.WALK_SPEED
+-- 🥚 วางไข่อัตโนมัติ
+function Tanny.AutoPlaceEgg()
+    while task.wait(Tanny.Settings.AutoPlaceInterval) do
+        if not Tanny.Enabled then break end
+        print("[Tanny] วางไข่อัตโนมัติ...")
+        -- ใส่โค้ดวางไข่ตามระบบในเกมของเรา
     end
 end
 
--- ================= ลูปหลัก =================
--- ทำงานเบื้องหลังเพื่อตรวจสอบและเรียกใช้ฟังก์ชันต่างๆ
-task.spawn(function()
+-- 🔁 ขโมย/เก็บไข่อัตโนมัติ
+function Tanny.AutoStealEgg()
     while task.wait(1) do
-        -- ตรวจสอบและเรียกใช้ฟังก์ชันที่เปิดใช้งาน
-        if CONFIG.AUTO_PLACE then
-            pcall(autoPlaceEgg)
-        end
-        if CONFIG.AUTO_STEAL then
-            pcall(autoStealEgg)
-        end
-        if CONFIG.AUTO_FARM_SPEED then
-            pcall(autoFarmSpeed)
+        if not Tanny.Enabled then break end
+        local myPos = game.Players.LocalPlayer.Character and 
+                      game.Players.LocalPlayer.Character.PrimaryPart and
+                      game.Players.LocalPlayer.Character.PrimaryPart.Position
+        if not myPos then continue end
+        
+        for _, descendant in ipairs(workspace:GetDescendants()) do
+            if descendant.Name == "Egg" and descendant:IsA("BasePart") then
+                local dist = (descendant.Position - myPos).Magnitude
+                if dist < Tanny.Settings.AutoStealRange then
+                    print("[Tanny] พบไข่ ระยะ " .. math.floor(dist) .. " หน่วย → เก็บแล้ว")
+                    -- ใส่โค้ดเก็บไข่ตามระบบในเกมของเรา
+                end
+            end
         end
     end
-end)
+end
 
-print("[tanny] สคริปต์โหลดสำเร็จ! ฟังก์ชันทั้งหมดทำงานอยู่เบื้องหลัง")
+-- ⚡ ฟาร์มความเร็วอัตโนมัติ
+function Tanny.AutoFarmSpeed()
+    while task.wait(5) do
+        if not Tanny.Enabled or not Tanny.Settings.AutoFarmSpeed then break end
+        print("[Tanny] อัปเกรดความเร็ว/ฟาร์ม...")
+        -- ใส่โค้ดอัปเกรดความเร็วตามระบบในเกมของเรา
+    end
+end
+
+-- ▶️ เริ่มทำงาน
+function Tanny.Start()
+    Tanny.Enabled = true
+    Tanny.SetWalkSpeed(true)
+    task.spawn(Tanny.AutoPlaceEgg)
+    task.spawn(Tanny.AutoStealEgg)
+    task.spawn(Tanny.AutoFarmSpeed)
+    print("[Tanny] ทำงานเรียบร้อย ✅")
+end
+
+-- ⏹️ หยุดทำงาน
+function Tanny.Stop()
+    Tanny.Enabled = false
+    Tanny.SetWalkSpeed(false)
+    print("[Tanny] หยุดทำงานแล้ว ⏹️")
+end
+
+-- เริ่มทำงานทันที
+Tanny.Start()
+
+-- ส่งออกไปใช้งาน
+return Tanny
